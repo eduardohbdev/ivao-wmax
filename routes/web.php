@@ -14,6 +14,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', static function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    Route::get('webeye', static function () {
+        return Inertia::render('webeye');
+    })->name('webeye');
 });
 
 require __DIR__.'/settings.php';
