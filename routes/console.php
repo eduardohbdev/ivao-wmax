@@ -9,5 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::job(new IvaoApiWhazzupJob())
-	->everyMinute()
-	->withoutOverlapping(10);
+	->everyFifteenSeconds()
+	->withoutOverlapping();

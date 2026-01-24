@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Fetch;
 
+use App\Actions\IvaoFetchWhazzup;
 use App\Events\IvaoWhazzupUpdatedEvent;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -10,32 +11,22 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Log;
 
 class IvaoApiWhazzupJob implements ShouldQueue
 {
 	use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-	public function handle(): void
+	public function handle(IvaoFetchWhazzup $action): void
 	{
 		try {
-			$apiVersion = config('services.ivao.api.version');
-			$endpoint = config('services.ivao.api.endpoint');
-			$cacheKey = config('services.ivao.cache.key');
-			$ttl = config('services.ivao.cache.ttl');
 
-			$response = Http::timeout(15)
-				->retry(2, 500)
-				->get("{$endpoint}/{$apiVersion}/tracker/whazzup");
-
-			if ($response->successful()) {
-				Cache::put($cacheKey, $response->json(), now()->addSeconds($ttl));
-				IvaoWhazzupUpdatedEvent::dispatch($response->json());
-			}
+			$dataAction = $action->execute();
+			Cache::put(config('services.ivao.cache.key'), $dataAction, now()->addHour());
+			IvaoWhazzupUpdatedEvent::dispatch($dataAction);
 
 		} catch (Exception $e) {
-			Log::error("Falha ao buscar dados IVAO: " . $e->getMessage());
+			Log::error("Failed to retrieve IVAO data: " . $e->getMessage());
 		}
 	}
 }
